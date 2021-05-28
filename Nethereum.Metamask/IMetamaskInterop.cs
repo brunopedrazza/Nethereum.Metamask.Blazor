@@ -5,8 +5,9 @@ namespace Nethereum.Metamask
 {
     public interface IMetamaskInterop
     {
-        ValueTask<string> EnableEthereumAsync();
-        ValueTask<bool> CheckMetamaskAvailability();
+        ValueTask<string> OnConnectAsync();
+        Task OnDisconnectAsync();
+        ValueTask<bool> IsProviderSelected();
         ValueTask<string> GetSelectedAddress();
         ValueTask<RpcResponseMessage> SendAsync(RpcRequestMessage rpcRequestMessage);
         ValueTask<RpcResponseMessage> SendTransactionAsync(MetamaskRpcRequestMessage rpcRequestMessage);

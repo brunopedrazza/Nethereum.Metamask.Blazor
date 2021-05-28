@@ -16,14 +16,19 @@ namespace Nethereum.Metamask.Blazor
             _jsRuntime = jsRuntime;
         }
 
-        public async ValueTask<string> EnableEthereumAsync()
+        public async ValueTask<string> OnConnectAsync()
         {
-            return await _jsRuntime.InvokeAsync<string>("NethereumMetamaskInterop.EnableEthereum");
+            return await _jsRuntime.InvokeAsync<string>("NethereumMetamaskInterop.OnConnect");
         }
 
-        public async ValueTask<bool> CheckMetamaskAvailability()
+        public async Task OnDisconnectAsync()
         {
-            return await _jsRuntime.InvokeAsync<bool>("NethereumMetamaskInterop.IsMetamaskAvailable");
+            await _jsRuntime.InvokeVoidAsync("NethereumMetamaskInterop.OnDisconnect");
+        }
+
+        public async ValueTask<bool> IsProviderSelected()
+        {
+            return await _jsRuntime.InvokeAsync<bool>("NethereumMetamaskInterop.IsProviderSelected");
         }
 
         public async ValueTask<RpcResponseMessage> SendAsync(RpcRequestMessage rpcRequestMessage)
@@ -40,7 +45,7 @@ namespace Nethereum.Metamask.Blazor
 
         public async ValueTask<string> SignAsync(string utf8Hex)
         {
-            var result = await  _jsRuntime.InvokeAsync<string>("NethereumMetamaskInterop.Sign", utf8Hex);
+            var result = await _jsRuntime.InvokeAsync<string>("NethereumMetamaskInterop.Sign", utf8Hex);
             return result.Trim('"');
         }
 
@@ -51,9 +56,9 @@ namespace Nethereum.Metamask.Blazor
 
 
         [JSInvokable()]
-        public static async Task MetamaskAvailableChanged(bool available)
+        public static async Task ProviderSelectedChanged(bool available)
         {
-            await MetamaskHostProvider.Current.ChangeMetamaskAvailableAsync(available);
+            await MetamaskHostProvider.Current.ProviderSelectedChangedAsync(available);
         }
 
         [JSInvokable()]
