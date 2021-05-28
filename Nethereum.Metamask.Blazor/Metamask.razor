@@ -1,28 +1,28 @@
 ﻿@using Nethereum.UI
-@inject IEthereumHostProvider _metamaskHostProvider;
-@inject NethereumAuthenticator  _nethereumAuthenticator;
+@inject IEthereumHostProvider _metamaskHostProvider
+@inject NethereumAuthenticator  _nethereumAuthenticator
 
 <div>
-    @if (MetamaskAvailable && !string.IsNullOrEmpty(SelectedAccount))
+    @if (ProviderAvailable && !string.IsNullOrEmpty(SelectedAccount))
     {
-        @SelectedAccount
+        <div>
+            @SelectedAccount
+        </div>
+        <div>
+            <button type="button" @onclick="@DisconnectAsync">Logout</button>
+        </div>
     }
 
-    @if (MetamaskAvailable && string.IsNullOrEmpty(SelectedAccount))
+    @if (!ProviderAvailable || string.IsNullOrEmpty(SelectedAccount))
     {
-        <button type="button" class="btnMetamask" @onclick="@EnableEthereumAsync">Connect Metamask</button>
-    }
-
-    @if (!MetamaskAvailable)
-    {
-        <button class="btnMetamask" disabled>Please Install Metamask</button>
+        <button type="button" class="btnMetamask" @onclick="@ConnectAsync">Connect Wallet</button>
     }
 
 </div>
 
 @code {
 
-    bool MetamaskAvailable { get; set; }
+    bool ProviderAvailable { get; set; }
     string SelectedAccount { get; set; }
     protected string AuthenticatedAccount { get; set; }
 
@@ -31,7 +31,9 @@
         if (firstRender)
         {
             _metamaskHostProvider.SelectedAccountChanged += MetamaskHostProvider_SelectedAccountChanged;
-            MetamaskAvailable = await _metamaskHostProvider.CheckProviderAvailabilityAsync();
+            _metamaskHostProvider.AvailabilityChanged += MetamaskHostProvider_ProviderAvailableChanged;
+
+            ProviderAvailable = await _metamaskHostProvider.CheckProviderAvailabilityAsync();
 
             StateHasChanged();
         }
@@ -43,9 +45,20 @@
         this.StateHasChanged();
     }
 
-    protected async Task EnableEthereumAsync()
+    private async Task MetamaskHostProvider_ProviderAvailableChanged(bool available)
+    {
+        ProviderAvailable = available;
+        this.StateHasChanged();
+    }
+
+    protected async Task ConnectAsync()
     {
         SelectedAccount = await _metamaskHostProvider.EnableProviderAsync();
+    }
+
+    protected async Task DisconnectAsync()
+    {
+        await _metamaskHostProvider.DisconnectProviderAsync();
     }
 
     public async Task AuthenticateAsync()

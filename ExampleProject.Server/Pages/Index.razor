@@ -8,7 +8,7 @@
 @using Nethereum.Web3;
 @using Nethereum.Hex.HexTypes;
 
-@if (EthereumAvailable == true && !string.IsNullOrEmpty(SelectedAccount))
+@if (ProviderAvailable && !string.IsNullOrEmpty(SelectedAccount))
 {
 <div class="card m-1">
     <div class="card-body">
@@ -59,7 +59,7 @@
 
 
     @code{
-        bool EthereumAvailable { get; set; }
+        bool ProviderAvailable { get; set; }
         string SelectedAccount { get; set; }
         string BlockHash { get; set; }
 
@@ -70,8 +70,9 @@
             if (firstTime)
             {
                 _ethereumHostProvider.SelectedAccountChanged += HostProvider_SelectedAccountChanged;
+                _ethereumHostProvider.AvailabilityChanged += MetamaskHostProvider_ProviderAvailableChanged;
 
-                EthereumAvailable = await _ethereumHostProvider.CheckProviderAvailabilityAsync();
+                ProviderAvailable = await _ethereumHostProvider.CheckProviderAvailabilityAsync();
 
             }
         }
@@ -79,6 +80,12 @@
         private async Task HostProvider_SelectedAccountChanged(string account)
         {
             SelectedAccount = account;
+            this.StateHasChanged();
+        }
+
+        private async Task MetamaskHostProvider_ProviderAvailableChanged(bool available)
+        {
+            ProviderAvailable = available;
             this.StateHasChanged();
         }
 
