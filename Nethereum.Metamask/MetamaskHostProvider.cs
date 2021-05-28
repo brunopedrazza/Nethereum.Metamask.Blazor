@@ -5,7 +5,7 @@ using Nethereum.UI;
 
 namespace Nethereum.Metamask
 {
-    public class MetamaskHostProvider: IEthereumHostProvider
+    public class MetamaskHostProvider : IEthereumHostProvider
     {
         private readonly IMetamaskInterop _metamaskInterop;
         public static MetamaskHostProvider Current { get; private set; }
@@ -21,24 +21,23 @@ namespace Nethereum.Metamask
         public event Func<int, Task> NetworkChanged;
         public event Func<bool, Task> AvailabilityChanged;
         public event Func<bool, Task> EnabledChanged;
+
         public async Task<bool> CheckProviderAvailabilityAsync()
         {
-            var result = await _metamaskInterop.CheckMetamaskAvailability();
-            await ChangeMetamaskAvailableAsync(result);
+            var result = await _metamaskInterop.IsProviderSelected();
+            await ProviderSelectedChangedAsync(result);
             return result;
         }
 
-       
-
         public Task<Web3.Web3> GetWeb3Async()
         {
-            var web3 = new Nethereum.Web3.Web3 {Client = {OverridingRequestInterceptor = _metamaskInterceptor}};
+            var web3 = new Web3.Web3 { Client = { OverridingRequestInterceptor = _metamaskInterceptor } };
             return Task.FromResult(web3);
         }
 
         public async Task<string> EnableProviderAsync()
         {
-            var selectedAccount = await _metamaskInterop.EnableEthereumAsync();
+            var selectedAccount = await _metamaskInterop.OnConnectAsync();
             Enabled = !string.IsNullOrEmpty(selectedAccount);
 
             if (Enabled)
@@ -52,6 +51,12 @@ namespace Nethereum.Metamask
             }
 
             return null;
+        }
+
+        public async Task DisconnectProviderAsync()
+        {
+            await _metamaskInterop.OnDisconnectAsync();
+            await CheckProviderAvailabilityAsync();
         }
 
         public async Task<string> GetProviderSelectedAccountAsync()
@@ -77,7 +82,7 @@ namespace Nethereum.Metamask
             _metamaskInterceptor = new MetamaskInterceptor(_metamaskInterop, this);
             Current = this;
         }
-        
+
         public async Task ChangeSelectedAccountAsync(string selectedAccount)
         {
             if (SelectedAccount != selectedAccount)
@@ -90,7 +95,7 @@ namespace Nethereum.Metamask
             }
         }
 
-        public async Task ChangeMetamaskAvailableAsync(bool available)
+        public async Task ProviderSelectedChangedAsync(bool available)
         {
             Available = available;
             if (AvailabilityChanged != null)
